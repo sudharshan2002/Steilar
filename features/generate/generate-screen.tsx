@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence, m } from "framer-motion";
-import { ArrowLeft, ArrowUp, Image, Loader2, Menu, Plus, X } from "lucide-react";
+import { m } from "framer-motion";
+import { ArrowUp, Image, Loader2, Plus, Sparkles, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/brand/app-shell";
@@ -44,7 +44,7 @@ export function GenerateScreen() {
   const [activeId, setActiveId] = useState("");
   const [draft, setDraft] = useState("");
   const [isThinking, setIsThinking] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [composerFocused, setComposerFocused] = useState(false);
 
   const activeThread = threads.find((thread) => thread.id === activeId) || threads[0];
   const canSend = draft.trim().length > 0 && !isThinking;
@@ -80,7 +80,6 @@ export function GenerateScreen() {
     const thread = makeThread();
     setThreads((current) => [thread, ...current]);
     setActiveId(thread.id);
-    setSidebarOpen(false);
     setDraft("");
   }
 
@@ -144,22 +143,42 @@ export function GenerateScreen() {
 
   return (
     <AppShell showNav={false} tone="dark">
-      <main className="safe-x safe-top relative flex min-h-dvh flex-col overflow-hidden bg-black text-white">
-        <div className="chat-gradient-glow pointer-events-none absolute -inset-28 opacity-75" />
-        <div className="subtle-dot-pattern pointer-events-none absolute inset-0 opacity-38" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.7),rgba(0,0,0,0.2)_46%,rgba(0,0,0,0.6))]" />
+      <main className="relative flex min-h-dvh overflow-hidden bg-black text-white">
+        <div className="chat-gradient-glow pointer-events-none absolute -bottom-28 left-[18%] h-72 w-[34rem] opacity-75" />
+        <div className="subtle-dot-pattern pointer-events-none absolute inset-x-0 bottom-0 h-[52%] opacity-28" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.96),rgba(0,0,0,0.88)_52%,rgba(0,0,0,0.72))]" />
 
-        <header className="relative z-20 flex items-center justify-between">
-          <Link href="/home" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/8" aria-label="Back home">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <button className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/8" onClick={() => setSidebarOpen(true)} aria-label="Open chats">
-            <Menu className="h-5 w-5" />
+        <aside className="safe-top safe-bottom relative z-20 flex w-[4.25rem] shrink-0 flex-col items-center border-r border-white/8 bg-black/58 px-2 backdrop-blur-2xl">
+          <img src="/Logo/logo only.png" alt="Steilar" className="mt-1 h-8 w-8 object-contain" />
+          <button className="mt-7 flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-[0_10px_24px_rgba(0,0,0,0.25)]" onClick={newChat} aria-label="New chat">
+            <Plus className="h-4 w-4" />
           </button>
-        </header>
+          <div className="mt-5 flex w-full flex-1 flex-col gap-2 overflow-hidden">
+            {threads.slice(0, 7).map((thread) => (
+              <button
+                key={thread.id}
+                className={cn(
+                  "mx-auto h-2.5 w-2.5 rounded-full bg-white/18 transition-all duration-500",
+                  thread.id === activeId && "h-8 w-1.5 rounded-full bg-white/80"
+                )}
+                onClick={() => setActiveId(thread.id)}
+                aria-label={thread.title}
+              />
+            ))}
+          </div>
+        </aside>
 
-        <section className="relative z-10 flex min-h-0 flex-1 flex-col pt-8">
-          <div className="mb-8">
+        <section className="safe-x safe-top relative z-10 flex min-w-0 flex-1 flex-col pb-0">
+          <header className="flex items-center justify-end gap-2">
+            <Link href="/stylist" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/8 bg-white/8 text-white/72 backdrop-blur-xl" aria-label="Stylist">
+              <Sparkles className="h-4 w-4" />
+            </Link>
+            <Link href="/profile" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/8 bg-white/8 text-white/72 backdrop-blur-xl" aria-label="Profile">
+              <UserRound className="h-4 w-4" />
+            </Link>
+          </header>
+
+          <div className="mb-8 mt-8">
             <p className="text-[12px] font-medium text-white/42">Steilar</p>
             <h1 className="font-title mt-2 text-left text-[2.05rem] font-normal leading-tight text-white">Design chat</h1>
           </div>
@@ -209,11 +228,21 @@ export function GenerateScreen() {
             </div>
           </div>
 
-          <div className="pb-5">
-            <div className="rounded-[1.45rem] border border-white/12 bg-[#171717]/88 p-2 shadow-[0_18px_60px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+          <div className="safe-bottom pb-5">
+            <m.div
+              animate={{
+                y: composerFocused ? -6 : 0,
+                scale: composerFocused ? 1.015 : 1,
+                filter: composerFocused ? "blur(0px)" : "blur(0px)"
+              }}
+              transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
+              className="rounded-[1.45rem] border border-white/12 bg-[#0d0d0f]/92 p-2 shadow-[0_18px_60px_rgba(0,0,0,0.42)] backdrop-blur-2xl"
+            >
               <Textarea
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
+                onFocus={() => setComposerFocused(true)}
+                onBlur={() => setComposerFocused(false)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault();
@@ -252,59 +281,9 @@ export function GenerateScreen() {
                   {isThinking ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
                 </button>
               </div>
-            </div>
+            </m.div>
           </div>
         </section>
-
-        <AnimatePresence>
-          {sidebarOpen && (
-            <>
-              <m.button
-                className="absolute inset-0 z-40 bg-black/48"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setSidebarOpen(false)}
-                aria-label="Close chats"
-              />
-              <m.aside
-                initial={{ x: "-100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "-100%" }}
-                transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
-                className="safe-top safe-bottom absolute inset-y-0 left-0 z-50 w-[82%] max-w-[20rem] bg-[#0b0b0c]/96 px-4 text-white shadow-[24px_0_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="text-[12px] font-semibold text-white/58">Chats</p>
-                  <button className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/8" onClick={() => setSidebarOpen(false)} aria-label="Close">
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                <button className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white text-[13px] font-medium text-black" onClick={newChat}>
-                  <Plus className="h-4 w-4" />
-                  New chat
-                </button>
-                <div className="mt-6 space-y-2">
-                  {threads.map((thread) => (
-                    <button
-                      key={thread.id}
-                      className={cn(
-                        "block w-full truncate rounded-[1rem] px-3 py-3 text-left text-[13px] text-white/62 hover:bg-white/8",
-                        thread.id === activeId && "bg-white/10 text-white"
-                      )}
-                      onClick={() => {
-                        setActiveId(thread.id);
-                        setSidebarOpen(false);
-                      }}
-                    >
-                      {thread.title}
-                    </button>
-                  ))}
-                </div>
-              </m.aside>
-            </>
-          )}
-        </AnimatePresence>
       </main>
     </AppShell>
   );

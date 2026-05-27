@@ -140,13 +140,12 @@ h2 {
 
 .chat-gradient-glow {
   background:
-    radial-gradient(circle at 12% 30%, rgba(42, 96, 255, 0.72), transparent 30%),
-    radial-gradient(circle at 88% 20%, rgba(42, 207, 230, 0.42), transparent 29%),
-    radial-gradient(circle at 28% 86%, rgba(115, 74, 255, 0.55), transparent 34%),
-    radial-gradient(circle at 76% 78%, rgba(0, 67, 190, 0.68), transparent 36%),
-    linear-gradient(135deg, rgba(3, 8, 24, 0.94), rgba(2, 16, 48, 0.72), rgba(8, 4, 31, 0.86));
+    radial-gradient(circle at 15% 55%, rgba(43, 92, 255, 0.82), transparent 26%),
+    radial-gradient(circle at 48% 44%, rgba(89, 65, 255, 0.72), transparent 28%),
+    radial-gradient(circle at 82% 54%, rgba(15, 203, 219, 0.55), transparent 26%),
+    radial-gradient(circle at 64% 78%, rgba(5, 47, 155, 0.84), transparent 32%);
   background-size: 120% 120%;
-  filter: blur(12px) saturate(120%);
+  filter: blur(30px) saturate(125%);
   animation: chat-gradient-drift 22s ease-in-out infinite alternate;
 }
 
@@ -158,18 +157,18 @@ h2 {
 
 @keyframes chat-gradient-drift {
   0% {
-    opacity: 0.68;
-    transform: translate3d(-4%, 2%, 0) scale(1);
+    opacity: 0.7;
+    transform: translate3d(-5%, 4%, 0) scale(1);
     background-position: 0% 50%;
   }
   50% {
-    opacity: 0.78;
-    transform: translate3d(3%, -2%, 0) scale(1.04);
+    opacity: 0.82;
+    transform: translate3d(4%, -3%, 0) scale(1.05);
     background-position: 100% 50%;
   }
   100% {
     opacity: 0.72;
-    transform: translate3d(4%, 3%, 0) scale(1.02);
+    transform: translate3d(5%, 4%, 0) scale(1.02);
     background-position: 40% 100%;
   }
 }
