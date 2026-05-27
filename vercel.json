@@ -1,0 +1,5 @@
+{
+  "name": "steilarai",
+  "framework": "nextjs",
+  "buildCommand": "npm run build"
+}

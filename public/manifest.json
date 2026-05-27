@@ -1,0 +1,25 @@
+{
+  "name": "Steilar",
+  "short_name": "Steilar",
+  "description": "Wear imagination with AI-generated fashion and custom tailoring.",
+  "start_url": "/home",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "browser"],
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

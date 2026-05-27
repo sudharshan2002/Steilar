@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function owner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function admin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    match /users/{userId} {
+      allow read, update: if owner(userId) || admin();
+      allow create: if owner(userId);
+    }
+
+    match /generations/{generationId} {
+      allow read, update: if owner(resource.data.userId) || admin();
+      allow create: if owner(request.resource.data.userId) || admin();
+      allow delete: if admin();
+    }
+
+    match /tailorRequests/{requestId} {
+      allow read: if owner(resource.data.userId) || admin();
+      allow create: if owner(request.resource.data.userId) || admin();
+      allow update: if owner(resource.data.userId) || admin();
+      allow delete: if admin();
+    }
+
+    match /subscriptions/{subscriptionId} {
+      allow read: if owner(resource.data.userId) || admin();
+      allow write: if admin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read, update: if owner(resource.data.userId) || admin();
+      allow create, delete: if admin();
+    }
+  }
+}
