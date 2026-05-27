@@ -1,67 +1,87 @@
+"use client";
+
 import Link from "next/link";
-import { CreditCard, Heart, Package, Ruler, Settings, Sparkles } from "lucide-react";
+import { Bell, CreditCard, Download, History, LogOut, Ruler, Sparkles, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { AppShell } from "@/components/brand/app-shell";
 import { TopBar } from "@/components/brand/top-bar";
 import { Button } from "@/components/ui/button";
-import { demoGenerations, demoTailorRequests } from "@/lib/data";
-import { currency } from "@/lib/utils";
-
-const rows = [
-  { href: "/results", label: "Generation history", icon: Sparkles },
-  { href: "/results", label: "Favourites", icon: Heart },
-  { href: "/tailor", label: "Measurements", icon: Ruler },
-  { href: "/subscription", label: "Subscription and credits", icon: CreditCard },
-  { href: "/settings", label: "Settings", icon: Settings }
-];
+import { signOutOfSteilar } from "@/lib/firebase/auth";
 
 export function ProfileScreen() {
+  const [message, setMessage] = useState("");
+
+  function clearChats() {
+    window.localStorage.removeItem("steilar_chat_threads");
+    setMessage("Chat history cleared on this device.");
+  }
+
+  async function signOut() {
+    try {
+      await signOutOfSteilar();
+      window.location.href = "/login";
+    } catch {
+      setMessage("Sign out needs Firebase config.");
+    }
+  }
+
+  const actions = [
+    { type: "link", href: "/generate", label: "Chats", icon: History },
+    { type: "link", href: "/results", label: "Design history", icon: Sparkles },
+    { type: "link", href: "/tailor", label: "Measurements", icon: Ruler },
+    { type: "link", href: "/subscription", label: "Subscription", icon: CreditCard },
+    { type: "link", href: "/notifications", label: "Notifications", icon: Bell },
+    { type: "button", label: "Install app", icon: Download, onClick: () => setMessage("On iPhone, open Safari share menu and choose Add to Home Screen.") },
+    { type: "button", label: "Clear local chats", icon: Trash2, onClick: clearChats },
+    { type: "button", label: "Sign out", icon: LogOut, onClick: signOut }
+  ] as const;
+
   return (
     <AppShell showNav={false} tone="dark">
       <main className="min-h-dvh overflow-y-auto bg-black pb-10 text-white">
         <TopBar title="Profile" dark />
-        <section className="safe-x pt-7">
-          <div className="rounded-[1.35rem] border border-white/10 bg-[#171717]/88 p-4">
+        <section className="safe-x pt-8">
+          <div className="border-b border-white/10 pb-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-lg font-semibold text-black">
-                S
-              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[1rem] font-semibold text-black">S</div>
               <div>
-                <h1 className="text-[1.35rem] font-semibold leading-tight">Steilar client</h1>
-                <p className="mt-1 text-[12px] text-white/48">Free tier · 3 generation credits</p>
+                <h1 className="text-[1.35rem] font-normal leading-tight">Steilar client</h1>
+                <p className="mt-1 text-[12px] text-white/44">Free tier · 3 generation credits</p>
               </div>
             </div>
-            <Button asChild className="mt-5 h-12 w-full bg-white text-black hover:bg-white/90">
-              <Link href="/subscription">Upgrade atelier access</Link>
+            <Button asChild className="mt-5 h-11 w-full bg-white text-black hover:bg-white/90">
+              <Link href="/subscription">Upgrade</Link>
             </Button>
           </div>
         </section>
 
-        <section className="safe-x mt-6 space-y-2.5">
-          {rows.map((row) => {
-            const Icon = row.icon;
-            return (
-              <Link key={row.label} href={row.href} className="flex items-center gap-3 rounded-[1.2rem] border border-white/10 bg-white/8 px-4 py-3.5">
-                <Icon className="h-4 w-4 text-white/64" />
-                <span className="text-[13px] font-medium">{row.label}</span>
-              </Link>
-            );
-          })}
-        </section>
+        <section className="safe-x mt-5">
+          <div className="divide-y divide-white/8">
+            {actions.map((item) => {
+              const Icon = item.icon;
+              const content = (
+                <>
+                  <Icon className="h-4 w-4 text-white/52" />
+                  <span className="text-[13px]">{item.label}</span>
+                </>
+              );
 
-        <section className="safe-x mt-7">
-          <h2 className="text-[13px] font-semibold">Recent order</h2>
-          <div className="mt-3 rounded-[1.35rem] border border-white/10 bg-[#171717]/88 p-4">
-            <div className="flex items-center gap-3">
-              <Package className="h-4 w-4 text-white/64" />
-              <div>
-                <p className="text-[13px] font-semibold">Noir bloom coat</p>
-                <p className="text-[12px] text-white/48">
-                  {demoTailorRequests[0].status} · {currency(demoTailorRequests[0].quoteAmount || 0)}
-                </p>
-              </div>
-            </div>
-            <img src={demoGenerations[0].resultImageUrls[0]} alt="" className="mt-4 h-44 w-full rounded-[1.1rem] object-cover" />
+              if (item.type === "link") {
+                return (
+                  <Link key={item.label} href={item.href} className="flex w-full items-center gap-3 py-4 text-white/78 transition hover:text-white">
+                    {content}
+                  </Link>
+                );
+              }
+
+              return (
+                <button key={item.label} className="flex w-full items-center gap-3 py-4 text-left text-white/78 transition hover:text-white" onClick={item.onClick}>
+                  {content}
+                </button>
+              );
+            })}
           </div>
+          {message && <p className="mt-5 text-[12px] leading-5 text-white/48">{message}</p>}
         </section>
       </main>
     </AppShell>

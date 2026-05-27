@@ -1,7 +1,7 @@
 "use client";
 
 import { m } from "framer-motion";
-import { ArrowUp, Image, Loader2, Plus, Sparkles, UserRound } from "lucide-react";
+import { ArrowUp, Image, Loader2, Menu, Plus, Sparkles, UserRound, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/brand/app-shell";
@@ -26,13 +26,25 @@ function makeId(prefix: string) {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function makeThread(): ChatThread {
+function makeThread(index = 1): ChatThread {
   return {
     id: makeId("chat"),
-    title: "New design",
+    title: `Design ${String(index).padStart(2, "0")}`,
     messages: [],
     updatedAt: new Date().toISOString()
   };
+}
+
+function titleFromPrompt(prompt: string, fallback: string) {
+  const cleaned = prompt
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned) return fallback;
+
+  const words = cleaned.split(" ").slice(0, 5).join(" ");
+  return words.length > 30 ? `${words.slice(0, 30)}...` : words;
 }
 
 export function GenerateScreen() {
@@ -45,6 +57,7 @@ export function GenerateScreen() {
   const [draft, setDraft] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [composerFocused, setComposerFocused] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const activeThread = threads.find((thread) => thread.id === activeId) || threads[0];
   const canSend = draft.trim().length > 0 && !isThinking;
@@ -58,7 +71,7 @@ export function GenerateScreen() {
       return;
     }
 
-    const first = makeThread();
+    const first = makeThread(1);
     setThreads([first]);
     setActiveId(first.id);
   }, []);
@@ -77,10 +90,11 @@ export function GenerateScreen() {
   }
 
   function newChat() {
-    const thread = makeThread();
+    const thread = makeThread(threads.length + 1);
     setThreads((current) => [thread, ...current]);
     setActiveId(thread.id);
     setDraft("");
+    setSidebarOpen(false);
   }
 
   async function submitPrompt() {
@@ -88,7 +102,7 @@ export function GenerateScreen() {
     if (!content || !activeThread) return;
 
     const userMessage: ChatMessage = { id: makeId("msg"), role: "user", content };
-    const nextTitle = activeThread.messages.length <= 1 ? content.slice(0, 34) : activeThread.title;
+    const nextTitle = activeThread.messages.length === 0 ? titleFromPrompt(content, activeThread.title) : activeThread.title;
 
     updateThread(activeThread.id, (thread) => ({
       ...thread,
@@ -143,45 +157,35 @@ export function GenerateScreen() {
 
   return (
     <AppShell showNav={false} tone="dark">
-      <main className="relative flex min-h-dvh overflow-hidden bg-black text-white">
-        <div className="chat-gradient-glow pointer-events-none absolute -bottom-28 left-[18%] h-72 w-[34rem] opacity-75" />
-        <div className="subtle-dot-pattern pointer-events-none absolute inset-x-0 bottom-0 h-[52%] opacity-28" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.96),rgba(0,0,0,0.88)_52%,rgba(0,0,0,0.72))]" />
+      <main className="safe-x safe-top relative flex min-h-dvh overflow-hidden bg-black text-white">
+        <div className="chat-gradient-glow pointer-events-none absolute -bottom-32 left-1/2 h-72 w-[32rem] -translate-x-1/2 opacity-80" />
+        <div className="subtle-dot-pattern pointer-events-none absolute inset-x-0 bottom-0 h-[46%] opacity-26" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.98),rgba(0,0,0,0.92)_55%,rgba(0,0,0,0.72))]" />
 
-        <aside className="safe-top safe-bottom relative z-20 flex w-[4.25rem] shrink-0 flex-col items-center border-r border-white/8 bg-black/58 px-2 backdrop-blur-2xl">
-          <img src="/Logo/logo only.png" alt="Steilar" className="mt-1 h-8 w-8 object-contain" />
-          <button className="mt-7 flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-[0_10px_24px_rgba(0,0,0,0.25)]" onClick={newChat} aria-label="New chat">
-            <Plus className="h-4 w-4" />
-          </button>
-          <div className="mt-5 flex w-full flex-1 flex-col gap-2 overflow-hidden">
-            {threads.slice(0, 7).map((thread) => (
-              <button
-                key={thread.id}
-                className={cn(
-                  "mx-auto h-2.5 w-2.5 rounded-full bg-white/18 transition-all duration-500",
-                  thread.id === activeId && "h-8 w-1.5 rounded-full bg-white/80"
-                )}
-                onClick={() => setActiveId(thread.id)}
-                aria-label={thread.title}
-              />
-            ))}
-          </div>
-        </aside>
-
-        <section className="safe-x safe-top relative z-10 flex min-w-0 flex-1 flex-col pb-0">
-          <header className="flex items-center justify-end gap-2">
-            <Link href="/stylist" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/8 bg-white/8 text-white/72 backdrop-blur-xl" aria-label="Stylist">
+        <section className="relative z-10 flex min-w-0 flex-1 flex-col pb-0">
+          <header className="flex items-center justify-between">
+            <button className="-ml-2 p-2 text-white/64 transition hover:text-white" onClick={() => setSidebarOpen(true)} aria-label="Open chats">
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-4">
+            <Link href="/stylist" className="text-white/58 transition hover:text-white" aria-label="Stylist">
               <Sparkles className="h-4 w-4" />
             </Link>
-            <Link href="/profile" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/8 bg-white/8 text-white/72 backdrop-blur-xl" aria-label="Profile">
+            <Link href="/profile" className="text-white/58 transition hover:text-white" aria-label="Profile">
               <UserRound className="h-4 w-4" />
             </Link>
+            </div>
           </header>
 
-          <div className="mb-8 mt-8">
-            <p className="text-[12px] font-medium text-white/42">Steilar</p>
-            <h1 className="font-title mt-2 text-left text-[2.05rem] font-normal leading-tight text-white">Design chat</h1>
-          </div>
+          <m.div
+            className="mb-8 mt-8"
+            initial={{ opacity: 0, y: 14, filter: "blur(14px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}
+          >
+            <p className="text-[12px] font-medium text-white/38">Steilar</p>
+            <h1 className="font-title mt-2 text-left text-[2rem] font-normal leading-tight text-white">Design chat</h1>
+          </m.div>
 
           <div className="hide-scrollbar min-h-0 flex-1 overflow-y-auto pb-5">
             <div className="space-y-4">
@@ -190,7 +194,7 @@ export function GenerateScreen() {
                   key={message.id}
                   initial={{ opacity: 0, y: 10, scale: 0.98, filter: "blur(10px)" }}
                   animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-                  transition={{ duration: 0.34, ease: [0.2, 0.8, 0.2, 1] }}
+                  transition={{ duration: 0.48, ease: [0.2, 0.8, 0.2, 1] }}
                   className={cn("flex", message.role === "user" ? "justify-end" : "justify-start")}
                 >
                   <div
@@ -231,12 +235,12 @@ export function GenerateScreen() {
           <div className="safe-bottom pb-5">
             <m.div
               animate={{
-                y: composerFocused ? -6 : 0,
-                scale: composerFocused ? 1.015 : 1,
-                filter: composerFocused ? "blur(0px)" : "blur(0px)"
+                y: composerFocused ? -8 : 0,
+                scale: composerFocused ? 1.018 : 1,
+                boxShadow: composerFocused ? "0 22px 70px rgba(40, 80, 255, 0.16)" : "0 18px 60px rgba(0,0,0,0.42)"
               }}
-              transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
-              className="rounded-[1.45rem] border border-white/12 bg-[#0d0d0f]/92 p-2 shadow-[0_18px_60px_rgba(0,0,0,0.42)] backdrop-blur-2xl"
+              transition={{ duration: 0.55, ease: [0.2, 0.8, 0.2, 1] }}
+              className="rounded-[1.45rem] border border-white/12 bg-[#0d0d0f]/92 p-2 backdrop-blur-2xl"
             >
               <Textarea
                 value={draft}
@@ -284,6 +288,55 @@ export function GenerateScreen() {
             </m.div>
           </div>
         </section>
+
+        {sidebarOpen && (
+          <>
+            <m.button
+              className="absolute inset-0 z-40 bg-black/50 backdrop-blur-[2px]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Close chats"
+            />
+            <m.aside
+              initial={{ x: -280, opacity: 0, filter: "blur(10px)" }}
+              animate={{ x: 0, opacity: 1, filter: "blur(0px)" }}
+              exit={{ x: -280, opacity: 0, filter: "blur(10px)" }}
+              transition={{ duration: 0.42, ease: [0.2, 0.8, 0.2, 1] }}
+              className="safe-top safe-bottom absolute inset-y-0 left-0 z-50 w-[18rem] bg-[#0b0b0c]/96 px-4 text-white shadow-[24px_0_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
+            >
+              <div className="flex items-center justify-between">
+                <img src="/Logo/logo only.png" alt="Steilar" className="h-8 w-8 object-contain" />
+                <button className="p-2 text-white/56 transition hover:text-white" onClick={() => setSidebarOpen(false)} aria-label="Close">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <button className="mt-8 flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left text-[13px] text-white/72 transition hover:bg-white/8 hover:text-white" onClick={newChat}>
+                <Plus className="h-4 w-4" />
+                New chat
+              </button>
+              <div className="mt-6 space-y-1">
+                {threads.map((thread) => (
+                  <button
+                    key={thread.id}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-xl px-2 py-2.5 text-left text-[13px] text-white/48 transition hover:bg-white/8 hover:text-white",
+                      thread.id === activeId && "bg-white/10 text-white"
+                    )}
+                    onClick={() => {
+                      setActiveId(thread.id);
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full bg-white/24", thread.id === activeId && "bg-white/80")} />
+                    <span className="truncate">{thread.title}</span>
+                  </button>
+                ))}
+              </div>
+            </m.aside>
+          </>
+        )}
       </main>
     </AppShell>
   );
